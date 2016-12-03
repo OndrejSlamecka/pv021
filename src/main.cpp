@@ -14,10 +14,10 @@ int main() {
     nn.randomize_weights(-1, 1);
 
     for (int i = 0; i < 10000; ++i) {
-        nn.learn({0, 0}, {0}, 0.5);
-        nn.learn({0, 1}, {1}, 0.5);
-        nn.learn({1, 0}, {1}, 0.5);
-        nn.learn({1, 1}, {0}, 0.5);
+        nn.learn({0, 0}, {0}, 0.5, 0.1);
+        nn.learn({0, 1}, {1}, 0.5, 0.1);
+        nn.learn({1, 0}, {1}, 0.5, 0.1);
+        nn.learn({1, 1}, {0}, 0.5, 0.1);
     }
 
     std::vector<double> r = nn.feed({1, 1});

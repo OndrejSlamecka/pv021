@@ -36,6 +36,14 @@ class MLP {
 
 
     /**
+     * Amount of change in the weight (of the connection between
+     * neuron i of layer l and neuron j of layer l + 1) in the previous
+     * backpropagation run.
+     */
+    std::vector<std::vector<std::vector<double>>> previous_delta_w;
+
+
+    /**
      * ksi[l][i] -- the inner potential of neuron i in layer l
      */
     std::vector<std::vector<double>> ksi;
@@ -82,6 +90,7 @@ class MLP {
         : n_neurons(il_n_neurons),
           n_layers(n_neurons.size()),
           w(n_layers),
+          previous_delta_w(n_layers),
           ksi(n_layers), o(n_layers) {
         o[0].resize(n_neurons[0] + 1);
         o[0][n_neurons[0]] = 1;
@@ -89,8 +98,10 @@ class MLP {
         for (unsigned int l = 1; l < n_layers; ++l) {
             // +1 for the bias input and weight
             w[l-1].resize(n_neurons[l-1] + 1);
+            previous_delta_w[l-1].resize(n_neurons[l-1] + 1);
             for (size_t r = 0; r < n_neurons[l-1] + 1; ++r) {
                 w[l-1][r].resize(n_neurons[l]);
+                previous_delta_w[l-1][r].resize(n_neurons[l]);
             }
 
             ksi[l].resize(n_neurons[l]);
@@ -157,7 +168,7 @@ class MLP {
      * actual output closer to the expected_output.
      */
     void learn(std::vector<double> input, std::vector<double> expected_output,
-        double learning_rate) {
+        double learning_rate, double momentum_factor) {
         // A handy shortcut
         int n_last_layer = n_layers - 1;
 
@@ -204,10 +215,15 @@ class MLP {
         for (unsigned int l = 0; l < n_layers - 1; ++l) {
             for (size_t i = 0; i < n_neurons[l] + 1; ++i) {
                 for (size_t j = 0; j < n_neurons[l+1]; ++j) {
-                    w[l][i][j] -= learning_rate *
-                        Ek_over_y[l+1][j]
+                    double delta_w = learning_rate
+                        * Ek_over_y[l+1][j]
                         * sigma_prime(ksi[l+1][j])
-                        * o[l][i];
+                        * o[l][i]
+                        + momentum_factor
+                        * previous_delta_w[l][i][j];
+
+                    w[l][i][j] -= delta_w;
+                    previous_delta_w[l][i][j] = delta_w;
                 }
             }
         }
