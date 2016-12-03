@@ -4,3 +4,6 @@ FAKEVAR:=$(shell mkdir -p bin)
 
 nn: src/main.cpp
 	$(CXX) -o bin/$@ $(CXXFLAGS) $^
+
+test_parser: src/test_parser.cpp
+	$(CXX) -o bin/$@ $(CXXFLAGS) $^
