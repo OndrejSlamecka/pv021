@@ -28,7 +28,7 @@ std::vector<double> transform(bool i) {
     return v;
 }
 
-double validate(MLP &nn, std::vector<BrcaImage> &validation, std::deque<Stats> &q) {
+double validate(MLP &nn, std::vector<BrcaImage> &validation) {
     Stats stats = {0,0,0};
     std::vector<double> r1, r2;
     for(unsigned i = 0; i<validation.size(); i++) {
@@ -47,8 +47,7 @@ double validate(MLP &nn, std::vector<BrcaImage> &validation, std::deque<Stats> &
             stats.unsure++;
         }
     }
-    std::cout << "validation: " << stats.corr << "/" << validation.size() << " = " << (stats.corr*100.0)/validation.size() << "%" << " (" << stats.unsure << " unsure)" << std::endl;
-    q.push_back(stats);
+    std::cout << (stats.corr*100.0)/validation.size() << " %: " << stats.corr << "/" << validation.size() << " (" << stats.unsure << " unsure), ";
     return (stats.corr*100.0)/validation.size();
 }
 
@@ -72,9 +71,10 @@ void normalize(std::vector<BrcaImage> &input, double a, double b) {
     // test of normalisation
     int bad = 0;
     for(auto & img: input)
-        for(auto & data: img.data)
+        for(auto & data: img.data) {
             if(data < -1 || data > 1)
                 bad++;
+        }
     if(bad) {
         std::cout << "normalization went wrong, " << bad << " numbers are not in range <-1,1>\n";
     }
@@ -85,23 +85,33 @@ void normalize(std::vector<BrcaImage> &input, double a, double b) {
 
 
 int main(int argc, char** argv) {
-    if (argc != 2 ) {
+    if (argc < 2)
         throw std::invalid_argument("No data file specified "
                                 "please provide it as first parameter");
-    }
-
-    MLP nn({30,10,2});
+    if (argc < 3)
+        throw std::invalid_argument("No training set size specified "
+                                "please provide it as second parameter");
+    if (argc < 4)
+        throw std::invalid_argument("No validation set size specified "
+                                "please provide it as third parameter (can be 0)");
+    
+    unsigned training_size;
+    unsigned validation_size;
+    
+    std::stringstream ss;
+    ss << argv[2] << " " << argv[3];
+    ss >> training_size >> validation_size;
 
     std::vector<BrcaImage> all_data = parse_brca_dataset(argv[1]);
     double a=0, b=0;
     normalize(all_data, a, b);
-    nn.randomize_weights(-1, 1);
-
-    unsigned training_size = 300;
-    unsigned validation_size = 0;
+    
     unsigned tot_size = training_size + validation_size;
     if (tot_size > all_data.size())
         throw std::invalid_argument("please decrease training or validation set size");
+
+
+
     
     std::vector<BrcaImage> training, validation;
     for(unsigned i = 0; i<training_size; ++i) {
@@ -114,25 +124,18 @@ int main(int argc, char** argv) {
             validation.push_back(all_data[i]);
     }
 
-    unsigned queue_size = 500;
+    unsigned queue_size = 10000000;
     unsigned interval = 100;
-    std::deque<Stats> efficiency;
     double treshold = 93.0;
 
-    while(validate(nn, validation, efficiency) < treshold) {
+    MLP nn({30,2});
+    nn.randomize_weights(-1, 1);
+    int i = -1;
+
+    while(validate(nn, validation) < treshold) {
+        ++i;
+        std::cout << i*interval << std::endl;
         // if efficiency does not grow for queue_size intervals, randomize weights
-        while(efficiency.size() > queue_size)
-            efficiency.pop_front();
-        if(efficiency.size() == queue_size) {
-            Stats first = efficiency.front(),
-                  last = efficiency.back();
-            // lobotomy :)
-            if(last.corr <= first.corr) {
-                std::cout << "reinitializing weights\n";
-                efficiency.clear();
-                nn.randomize_weights(-1, 1);
-            }
-        }
         for(unsigned i = 0; i<interval; i++) {
             for(unsigned j = 0; j<training_size; j++) {
                 nn.learn(training[j].data, transform(training[j].malignant), 0.5, 0.1);
@@ -140,8 +143,8 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::cout << "found good efficiency on valid set, here is efficiency on all data:\n";
-    validate(nn, all_data, efficiency);
+    validate(nn, all_data);
+    std::cout << queue_size*interval << "\n";
 
     return 0;
 }
