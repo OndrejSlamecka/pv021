@@ -4,108 +4,116 @@
  */
 
 #include <bits/stdc++.h>
-
 #include "brca_image.hpp"
-
 #include "MLP.hpp"
 
-struct Stats {
-    int corr;
-    int unsure;
-    int fail;
-};
+using namespace std;
 
-std::vector<double> transform(bool i) {
-    std::vector<double> v;
-    if(i) {
-        v.push_back(0); v.push_back(1);
+/**
+ * Encodes true as {0, 1}, false as {1, 0}.
+ */
+vector<double> one_hot_bool(bool i) {
+    if (i) {
+        return {0, 1};
+    } else {
+        return {1, 0};
     }
-    else {
-        v.push_back(1); v.push_back(0);
-    }
-    return v;
 }
 
-double validate(MLP &nn, std::vector<BrcaImage> &validation) {
-    Stats stats = {0,0,0};
-    std::vector<double> r1, r2;
+/**
+ *
+ */
+double validate(MLP &nn, vector<BrcaImage> &validation) {
+    int n_correct = 0,
+        n_incorrect = 0,
+        n_unsure = 0;
+
+    vector<double> result;
     for (unsigned i = 0; i<validation.size(); i++) {
-        r1 = nn.feed(validation[i].data);
-        if(r1[0]<0.5) r1[0] = 0;
-        else r1[0] = 1;
-        if(r1[1]<0.5) r1[1] = 0;
-        else r1[1] = 1;
-        if(r1 == transform(validation[i].malignant)) {
-            stats.corr++;
-        }
-        else if (r2 == transform(!validation[i].malignant) ){
-            stats.fail++;
-        }
-        else {
-            stats.unsure++;
+        result = nn.feed(validation[i].data);
+        result[0] = result[0] < 0.5 ? 0 : 1;
+        result[1] = result[1] < 0.5 ? 0 : 1;
+
+        if(result == one_hot_bool(validation[i].malignant)) {
+            n_correct++;
+        } else if (result == one_hot_bool(!validation[i].malignant)){
+            n_incorrect++;
+        } else {
+            n_unsure++;
         }
     }
-    std::cout << (stats.corr*100.0)/validation.size() << "%: " << stats.corr << "/" << validation.size() << " (" << stats.fail << " incorrect, " << stats.unsure << " unsure)\n";
-    return (stats.corr*100.0)/validation.size();
+
+    double correctness = (n_correct * 100.0) / validation.size();
+    cout << correctness << "%: "
+        << n_correct << "/" << validation.size()
+        << " (" << n_incorrect << " incorrect, " << n_unsure << " unsure)\n";
+
+    return correctness;
 }
 
-void normalize(std::vector<BrcaImage> &input, double a, double b) {
+void normalize(vector<BrcaImage> &input) {
+    double a, b;
+
     double min_input = input[0].data[0];
     double max_input = input[0].data[0];
-    for (auto & img: input)
+    for (auto & img: input) {
         for (auto & data: img.data) {
-            if (data<min_input)
+            if (data<min_input) {
                 min_input = data;
-            if (data>max_input)
+            }
+
+            if (data>max_input) {
                 max_input = data;
+            }
         }
+    }
+
     a = (max_input + min_input) / 2;
     b = (max_input - min_input) / 2;
-    std::cout << "using normalization constants: (X-" << a << ")/" << b << "\n";
-    for (auto & img: input)
-        for (auto & data: img.data)
-            data = (data-a)/b;
+    cout << "Using normalization constants: (X - " << a << ") / " << b << endl;
+    for (auto & img: input) {
+        for (auto & data: img.data) {
+            data = (data - a) / b;
+        }
+    }
 
-    // test of normalisation
+    // test the normalization
     int bad = 0;
-    for (auto & img: input)
+    for (auto & img: input) {
         for (auto & data: img.data) {
             if (data < -1 || data > 1)
                 bad++;
         }
-    if (bad)
-        std::cout << "normalization went wrong, " << bad << " numbers are not in range <-1,1>\n";
-    else
-        std::cout << "data normalized successfully\n";
+    }
+
+    if (bad) {
+        cout << "Normalization went wrong, "
+            << bad << " numbers are not in range <-1,1>!" << endl;
+    }
 }
 
-
 int main(int argc, char** argv) {
-    if (argc < 2)
-        throw std::invalid_argument("No data file specified\n"
-                                "USAGE: bin/nn traiing_file_name training_set_size"
-                                );
-    if (argc < 3)
-        throw std::invalid_argument("No training set size specified "
-                                "USAGE: bin/nn traiing_file_name training_set_size"
-                                );
+    if (argc < 3) {
+        cerr << "Usage:\t" << argv[0] << " data_path training_set_size\n" << endl;
+        cerr << "\tThe program opens the file at the data_path " << endl;
+        exit(1);
+    }
 
-    unsigned training_size;
+    unsigned training_size = atoi(argv[2]);
 
-    std::stringstream ss;
-    ss << argv[2];
-    ss >> training_size;
+    vector<BrcaImage> all_data = parse_brca_dataset(argv[1]);
+    normalize(all_data);
 
-    std::vector<BrcaImage> all_data = parse_brca_dataset(argv[1]);
-    double a=0, b=0;
-    normalize(all_data, a, b);
+    if (training_size > all_data.size()) {
+        cerr << "The given training set size is greater than"
+                "the size of the data set." << endl;
+        exit(1);
+    }
 
-    if (training_size > all_data.size())
-        throw std::invalid_argument("please decrease training set size");
-
-    std::vector<BrcaImage> training, validation;
-    for(unsigned i = 0; i<training_size; ++i)
+    vector<BrcaImage> training, validation;
+    for (unsigned i = 0; i < training_size; ++i) {
         training.push_back(all_data[i]);
+    }
 
     // how often is validation run
     unsigned interval = 1000;
@@ -118,12 +126,16 @@ int main(int argc, char** argv) {
 
     while (validate(nn, all_data) < treshold) {
         ++i;
-        for (unsigned i = 0; i<interval; i++)
-            for (unsigned j = 0; j<training_size; j++)
-                nn.learn(training[j].data, transform(training[j].malignant), 0.5, 0.0);
+        for (unsigned i = 0; i<interval; i++) {
+            for (unsigned j = 0; j<training_size; j++) {
+                nn.learn(training[j].data,
+                    one_hot_bool(training[j].malignant),
+                    0.5, 0.0);
+            }
+        }
     }
 
-    std::cout << "Learning finished, reached treshold " << treshold << "%" << std::endl;
+    cout << "Learning finished, reached treshold " << treshold << "%" << endl;
 
     return 0;
 }

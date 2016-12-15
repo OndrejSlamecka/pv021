@@ -23,8 +23,7 @@ Run
 
     git clone --recursive git@github.com:OndrejSlamecka/pv021.git
     make
-    ./bin/nn
-
+    ./bin/nn data/reorganized.dat 76
 
 Code Style
 ----------
