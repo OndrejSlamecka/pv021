@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
             for (unsigned j = 0; j<training_size; j++) {
                 nn.learn(training[j].data,
                     one_hot_bool(training[j].malignant),
-                    0.5, 0.0);
+                    0.5, 0.2);
             }
         }
     }
