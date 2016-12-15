@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Michal Korbela, Filip Pokrývka, Ondřej Slámečka
+ * Copyright 2016 Michal Korbela, Filip Pokryvka, Ondrej Slamecka
  * See the LICENSE file for more information.
  */
 #include <vector>

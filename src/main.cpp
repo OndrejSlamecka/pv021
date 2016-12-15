@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Michal Korbela, Filip Pokrývka, Ondřej Slámečka
+ * Copyright 2016 Michal Korbela, Filip Pokryvka, Ondrej Slamecka
  * See the LICENSE file for more information.
  */
 
@@ -52,7 +52,7 @@ double validate(MLP &nn, std::vector<BrcaImage> &validation) {
 void normalize(std::vector<BrcaImage> &input, double a, double b) {
     double min_input = input[0].data[0];
     double max_input = input[0].data[0];
-    for (auto & img: input) 
+    for (auto & img: input)
         for (auto & data: img.data) {
             if (data<min_input)
                 min_input = data;
@@ -62,7 +62,7 @@ void normalize(std::vector<BrcaImage> &input, double a, double b) {
     a = (max_input + min_input) / 2;
     b = (max_input - min_input) / 2;
     std::cout << "using normalization constants: (X-" << a << ")/" << b << "\n";
-    for (auto & img: input) 
+    for (auto & img: input)
         for (auto & data: img.data)
             data = (data-a)/b;
 
@@ -89,9 +89,9 @@ int main(int argc, char** argv) {
         throw std::invalid_argument("No training set size specified "
                                 "USAGE: bin/nn traiing_file_name training_set_size"
                                 );
-    
+
     unsigned training_size;
-    
+
     std::stringstream ss;
     ss << argv[2];
     ss >> training_size;
@@ -99,14 +99,14 @@ int main(int argc, char** argv) {
     std::vector<BrcaImage> all_data = parse_brca_dataset(argv[1]);
     double a=0, b=0;
     normalize(all_data, a, b);
-    
+
     if (training_size > all_data.size())
         throw std::invalid_argument("please decrease training set size");
 
     std::vector<BrcaImage> training, validation;
-    for(unsigned i = 0; i<training_size; ++i) 
+    for(unsigned i = 0; i<training_size; ++i)
         training.push_back(all_data[i]);
-    
+
     // how often is validation run
     unsigned interval = 1000;
     // when to stop
