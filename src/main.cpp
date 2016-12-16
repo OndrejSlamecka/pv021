@@ -20,8 +20,9 @@ vector<double> one_hot_bool(bool i) {
     }
 }
 
+
 /**
- *
+ * Runs the validation set through the network and computes correctness.
  */
 double validate(MLP &nn, vector<BrcaImage> &validation) {
     int n_correct = 0,
@@ -29,15 +30,24 @@ double validate(MLP &nn, vector<BrcaImage> &validation) {
         n_unsure = 0;
 
     vector<double> result;
-    for (unsigned i = 0; i<validation.size(); i++) {
+    for (unsigned i = 0; i < validation.size(); i++) {
         result = nn.feed(validation[i].data);
-        result[0] = result[0] < 0.5 ? 0 : 1;
-        result[1] = result[1] < 0.5 ? 0 : 1;
 
-        if(result == one_hot_bool(validation[i].malignant)) {
-            n_correct++;
-        } else if (result == one_hot_bool(!validation[i].malignant)){
-            n_incorrect++;
+        double certainity_threshold = 0.8;
+
+        // note that result[0] + result[1] is approximately 1
+        if (result[0] > certainity_threshold) {
+            if (!validation[i].malignant) {
+                n_correct++;
+            } else {
+                n_incorrect++;
+            }
+        } else if (result[1] > certainity_threshold) {
+            if (validation[i].malignant) {
+                n_correct++;
+            } else {
+                n_incorrect++;
+            }
         } else {
             n_unsure++;
         }
