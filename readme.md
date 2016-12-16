@@ -17,7 +17,6 @@ The MLP learns using gradient descent with backpropagation and momentum.
 If you want better correctness have a look at radial basis function
 networks ([an example application](http://www.acit2k.org/ACIT/2012Proceedings/13233.pdf)).
 
-
 Run
 ---
 
@@ -32,11 +31,9 @@ Code Style
 
     python cpplint.py --extensions=cpp,hpp src/*
 
-
 Authors
 -------
 
 * Michal Korbela, Filip Pokrývka -- data processing and finding the
   right network topology for best learning
 * Ondřej Slámečka -- MLP with backpropagation
-
