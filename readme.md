@@ -4,8 +4,8 @@ Neural Network Diagnosing Tumorous Cells
 Feed about 80 of the 567 instances of the
 [Breast Cancer Wisconsin (Diagnostic) Data Set](http://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Diagnostic%29)
 to our own implementation of multilayer perceptron and after short
-learning achieve a 92 % correctness rate on the whole dataset
-(on the remaining 8 % the network is half unsure half incorrect).
+learning achieve a 93 % correctness rate on the whole dataset
+(on 4 % the network is unsure, on 3 % the network is incorrect).
 
 The MLP works best with just 30 input neurons and two input neurons
 suggesting the input maps to output in a linear way (there's a single
@@ -21,6 +21,15 @@ Run
     git clone --recursive git@github.com:OndrejSlamecka/pv021.git
     make
     ./bin/nn data/reorganized.dat 76
+
+
+With the above arguments the program will repeatedly train the network 1000 times with 76 instances and then output a line similar to
+
+    92.9701%: 529/569 (14 incorrect, 26 unsure)
+
+
+Since the 76 instances are selected at random you may observe some bad
+learning if you are unlucky.
 
 Code Style
 ----------

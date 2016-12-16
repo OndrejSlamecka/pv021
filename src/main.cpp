@@ -33,7 +33,7 @@ double validate(MLP &nn, vector<BrcaImage> &validation) {
     for (unsigned i = 0; i < validation.size(); i++) {
         result = nn.feed(validation[i].data);
 
-        double certainity_threshold = 0.8;
+        double certainity_threshold = 0.9;
 
         // note that result[0] + result[1] is approximately 1
         if (result[0] > certainity_threshold) {
@@ -61,6 +61,10 @@ double validate(MLP &nn, vector<BrcaImage> &validation) {
     return correctness;
 }
 
+
+/**
+ * Standard dataset normalization.
+ */
 void normalize(vector<BrcaImage> &input) {
     double a, b;
     for (unsigned i = 0; i<input[0].data.size(); ++i) {
@@ -101,6 +105,7 @@ void normalize(vector<BrcaImage> &input) {
     }
 }
 
+
 int main(int argc, char** argv) {
     if (argc < 3) {
         cerr << "Usage:\t" << argv[0] << " data_path training_set_size\n" << endl;
@@ -119,6 +124,7 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
+    random_shuffle(all_data.begin(), all_data.end());
     vector<BrcaImage> training, validation;
     for (unsigned i = 0; i < training_size; ++i) {
         training.push_back(all_data[i]);
