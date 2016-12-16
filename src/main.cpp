@@ -24,7 +24,7 @@ vector<double> one_hot_bool(bool i) {
 /**
  * Runs the validation set through the network and computes correctness.
  */
-double validate(MLP &nn, vector<BrcaImage> &validation) {
+double validate(MLP &nn, vector<BrcaImage> &validation, int n_iterations) {
     int n_correct = 0,
         n_incorrect = 0,
         n_unsure = 0;
@@ -55,8 +55,11 @@ double validate(MLP &nn, vector<BrcaImage> &validation) {
 
     double correctness = (n_correct * 100.0) / validation.size();
     cout << correctness << "%: "
-        << n_correct << "/" << validation.size()
-        << " (" << n_incorrect << " incorrect, " << n_unsure << " unsure)\n";
+        << validation.size() << " inputs, "
+        << n_correct << " correct, "
+        << n_incorrect << " incorrect, "
+        << n_unsure << " unsure, "
+        << n_iterations << " iterations" << endl;
 
     return correctness;
 }
@@ -133,12 +136,14 @@ int main(int argc, char** argv) {
     // how often is validation run
     unsigned interval = 1000;
     // when to stop
-    double treshold = 98;
+    double treshold = 95;
 
     MLP nn({30,2});
     nn.randomize_weights(-1, 1);
 
-    while (validate(nn, all_data) < treshold) {
+    int n_iterations = 0;
+
+    while (validate(nn, all_data, n_iterations) < treshold) {
         for (unsigned i = 0; i<interval; i++) {
             for (unsigned j = 0; j<training_size; j++) {
                 nn.learn(training[j].data,
@@ -146,6 +151,7 @@ int main(int argc, char** argv) {
                     0.5, 0.2);
             }
         }
+        n_iterations += interval;
     }
 
     cout << "Learning finished, reached treshold " << treshold << "%" << endl;
