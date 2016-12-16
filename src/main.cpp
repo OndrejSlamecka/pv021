@@ -63,27 +63,24 @@ double validate(MLP &nn, vector<BrcaImage> &validation) {
 
 void normalize(vector<BrcaImage> &input) {
     double a, b;
-
-    double min_input = input[0].data[0];
-    double max_input = input[0].data[0];
-    for (auto & img: input) {
-        for (auto & data: img.data) {
-            if (data<min_input) {
-                min_input = data;
+    for (unsigned i = 0; i<input[0].data.size(); ++i) {
+        double min_input = input[0].data[i];
+        double max_input = input[0].data[i];
+        for (auto & img: input) {
+            if (img.data[i]<min_input) {
+                min_input = img.data[i];
             }
 
-            if (data>max_input) {
-                max_input = data;
+            if (img.data[i]>max_input) {
+                max_input = img.data[i];
             }
         }
-    }
 
-    a = (max_input + min_input) / 2;
-    b = (max_input - min_input) / 2;
-    cout << "Using normalization constants: (X - " << a << ") / " << b << endl;
-    for (auto & img: input) {
-        for (auto & data: img.data) {
-            data = (data - a) / b;
+        a = (max_input + min_input) / 2;
+        b = (max_input - min_input) / 2;
+        //cout << "Using normalization constants: (X - " << a << ") / " << b << endl;
+        for (auto & img: input) {
+            img.data[i] = (img.data[i] - a) / b;
         }
     }
 
@@ -91,8 +88,10 @@ void normalize(vector<BrcaImage> &input) {
     int bad = 0;
     for (auto & img: input) {
         for (auto & data: img.data) {
-            if (data < -1 || data > 1)
+            if (data < -1.2 || data > 1.2 ) {
+                cout << data << " is not in -1 1" << endl;
                 bad++;
+            }
         }
     }
 
@@ -128,14 +127,12 @@ int main(int argc, char** argv) {
     // how often is validation run
     unsigned interval = 1000;
     // when to stop
-    double treshold = 92.5;
+    double treshold = 98;
 
     MLP nn({30,2});
     nn.randomize_weights(-1, 1);
-    int i = -1;
 
     while (validate(nn, all_data) < treshold) {
-        ++i;
         for (unsigned i = 0; i<interval; i++) {
             for (unsigned j = 0; j<training_size; j++) {
                 nn.learn(training[j].data,

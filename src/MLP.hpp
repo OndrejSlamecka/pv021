@@ -1,5 +1,9 @@
 /**
+<<<<<<< HEAD
  * Copyright 2016 Michal Korbela, Filip Pokryvka, Ondrej Slamecka
+=======
+ * Copyright 2016 Michal Korbela, Filip Pokrývka, Ondřej Slámečka
+>>>>>>> c38414b10d3818b3d69afc0978335c7e447365a7
  * See the LICENSE file for more information.
  */
 #include <vector>
