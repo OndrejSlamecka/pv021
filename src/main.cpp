@@ -33,16 +33,16 @@ double validate(MLP &nn, vector<BrcaImage> &validation, int n_iterations) {
     for (unsigned i = 0; i < validation.size(); i++) {
         result = nn.feed(validation[i].data);
 
-        double certainity_threshold = 0.9;
+        double certainty_threshold = 0.9;
 
         // note that result[0] + result[1] is approximately 1
-        if (result[0] > certainity_threshold) {
+        if (result[0] > certainty_threshold) {
             if (!validation[i].malignant) {
                 n_correct++;
             } else {
                 n_incorrect++;
             }
-        } else if (result[1] > certainity_threshold) {
+        } else if (result[1] > certainty_threshold) {
             if (validation[i].malignant) {
                 n_correct++;
             } else {
@@ -129,23 +129,28 @@ int main(int argc, char** argv) {
 
     random_shuffle(all_data.begin(), all_data.end());
     vector<BrcaImage> training, validation;
-    for (unsigned i = 0; i < training_size; ++i) {
-        training.push_back(all_data[i]);
+    for (unsigned i = 0; i < all_data.size(); ++i) {
+		if (i < training_size) {
+	        training.push_back(all_data[i]);
+		} else {
+			validation.push_back(all_data[i]);
+		}
     }
 
-    // how often is validation run
+	// how many times does the network learn each learning instance between
+	// validation runs
     unsigned interval = 1000;
     // when to stop
-    double treshold = 95;
+    double threshold = 95;
 
     MLP nn({30,2});
     nn.randomize_weights(-1, 1);
 
     int n_iterations = 0;
 
-    while (validate(nn, all_data, n_iterations) < treshold) {
-        for (unsigned i = 0; i<interval; i++) {
-            for (unsigned j = 0; j<training_size; j++) {
+    while (validate(nn, validation, n_iterations) < threshold) {
+        for (unsigned i = 0; i < interval; i++) {
+            for (unsigned j = 0; j < training_size; j++) {
                 nn.learn(training[j].data,
                     one_hot_bool(training[j].malignant),
                     0.5, 0.2);
@@ -154,7 +159,7 @@ int main(int argc, char** argv) {
         n_iterations += interval;
     }
 
-    cout << "Learning finished, reached treshold " << treshold << "%" << endl;
+    cout << "Learning finished, reached threshold " << threshold << "%" << endl;
 
     return 0;
 }
