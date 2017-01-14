@@ -24,7 +24,7 @@ vector<double> one_hot_bool(bool i) {
 /**
  * Runs the validation set through the network and computes correctness.
  */
-double validate(MLP &nn, vector<BrcaImage> &validation, int n_iterations) {
+double validate(MLP &nn, vector<BrcaImage> &validation, int n_iterations, double certainty_threshold) {
     int n_correct = 0,
         n_incorrect = 0,
         n_unsure = 0;
@@ -32,8 +32,6 @@ double validate(MLP &nn, vector<BrcaImage> &validation, int n_iterations) {
     vector<double> result;
     for (unsigned i = 0; i < validation.size(); i++) {
         result = nn.feed(validation[i].data);
-
-        double certainty_threshold = 0.9;
 
         // note that result[0] + result[1] is approximately 1
         if (result[0] > certainty_threshold) {
@@ -143,12 +141,15 @@ int main(int argc, char** argv) {
     // when to stop
     double threshold = 95;
 
+    // At least how big should the value in the output neuron be to
+    // determine a result
+    double certainty_threshold = 0.9;
+
     MLP nn({30,2});
     nn.randomize_weights(-1, 1);
 
     int n_iterations = 0;
-
-    while (validate(nn, validation, n_iterations) < threshold) {
+    while (validate(nn, validation, n_iterations, certainty_threshold) < threshold) {
         for (unsigned i = 0; i < interval; i++) {
             for (unsigned j = 0; j < training_size; j++) {
                 nn.learn(training[j].data,
