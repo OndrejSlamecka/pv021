@@ -66,7 +66,7 @@ double validate(MLP &nn, vector<BrcaImage> &validation, int n_iterations, double
 /**
  * Standard dataset normalization.
  */
-void normalize(vector<BrcaImage> &input) {
+void normalize(vector<BrcaImage> &input, vector<BrcaImage> &validation) {
     double a, b;
     for (unsigned i = 0; i<input[0].data.size(); ++i) {
         double min_input = input[0].data[i];
@@ -85,6 +85,9 @@ void normalize(vector<BrcaImage> &input) {
         b = (max_input - min_input) / 2;
         //cout << "Using normalization constants: (X - " << a << ") / " << b << endl;
         for (auto & img: input) {
+            img.data[i] = (img.data[i] - a) / b;
+        }
+        for (auto & img: validation) {
             img.data[i] = (img.data[i] - a) / b;
         }
     }
@@ -117,7 +120,6 @@ int main(int argc, char** argv) {
     unsigned training_size = atoi(argv[2]);
 
     vector<BrcaImage> all_data = parse_brca_dataset(argv[1]);
-    normalize(all_data);
 
     if (training_size > all_data.size()) {
         cerr << "The given training set size is greater than"
@@ -134,6 +136,9 @@ int main(int argc, char** argv) {
 			validation.push_back(all_data[i]);
 		}
     }
+    
+    // normalizes training set to <-1,1>, and using the same constants for validation set
+    normalize(training, validation);
 
 	// how many times does the network learn each learning instance between
 	// validation runs
