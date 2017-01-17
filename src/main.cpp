@@ -65,6 +65,7 @@ double validate(MLP &nn, vector<BrcaImage> &validation, int n_iterations, double
 
 /**
  * Standard dataset normalization.
+ * http://stats.stackexchange.com/questions/174823/how-to-apply-standardization-normalization-to-train-and-testset-if-prediction-i
  */
 void normalize(vector<BrcaImage> &input, vector<BrcaImage> &validation) {
     double a, b;
@@ -130,18 +131,18 @@ int main(int argc, char** argv) {
     random_shuffle(all_data.begin(), all_data.end());
     vector<BrcaImage> training, validation;
     for (unsigned i = 0; i < all_data.size(); ++i) {
-		if (i < training_size) {
-	        training.push_back(all_data[i]);
-		} else {
-			validation.push_back(all_data[i]);
-		}
+        if (i < training_size) {
+            training.push_back(all_data[i]);
+        } else {
+            validation.push_back(all_data[i]);
+        }
     }
-    
+
     // normalizes training set to <-1,1>, and using the same constants for validation set
     normalize(training, validation);
 
-	// how many times does the network learn each learning instance between
-	// validation runs
+    // how many times does the network learn each learning instance between
+    // validation runs
     unsigned interval = 1000;
     // when to stop
     double threshold = 95;
@@ -158,8 +159,8 @@ int main(int argc, char** argv) {
         for (unsigned i = 0; i < interval; i++) {
             for (unsigned j = 0; j < training_size; j++) {
                 nn.learn(training[j].data,
-                    one_hot_bool(training[j].malignant),
-                    0.5, 0.2);
+                        one_hot_bool(training[j].malignant),
+                        0.5, 0.2);
             }
         }
         n_iterations += interval;

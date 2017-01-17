@@ -36,7 +36,7 @@ learning if you are unlucky. Or good learning if you are lucky.
 Hyperparameter experiments
 --------------------------
 
-The program has four main hyperparameters: the number and size of thr
+The program has four main hyperparameters: the number and size of the
 hidden layers, learning rate, momentum factor, certainty threshold
 (determines how sure the network has to be to report a result instead of
 saying it is unsure).
@@ -45,9 +45,6 @@ Below we list several well performing network configurations. Most
 reasonable configurations achieve good results, the network has to be
 set up in a really wrong way to not work (e.g. very low learning rate,
 extreme momentum, ten inner layers,...).
-
-WARNING: The certainty below includes the learning set. The table will
-be fixed soon.
 
     name  topology     learning   momentum  certainty  max certainty  incorrect/unsure
                        rate                 threshold  in %
