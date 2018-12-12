@@ -7,7 +7,7 @@ to our own implementation of multilayer perceptron and after short
 learning achieve a 93.6 % correctness rate on the validation dataset.
 
 First we normalize the data and then the MLP learns using gradient
-descent with backpropagation and momentum. The MLP works very good with
+descent with backpropagation and momentum. The MLP works very well with
 just 30 input neurons (one for each number in the input) and two output
 neurons (encoding malignant/benign prediction) suggesting the input maps
 to output in a linear way (there's a single weight matrix in the
